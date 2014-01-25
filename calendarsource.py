@@ -20,8 +20,7 @@ class BileterSource(CalendarSource):
 			print self.base_url + "/" + sourceObject.url + "/" + datetime.datetime.now().strftime("%Y-%m-%d") + "/"
 
 			opener = httplib2.Http()
-			#opener.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36')]
-			#urllib2.install_opener(opener)
+
 			response, content = opener.request(
 				self.base_url + 
 				"/" + 
@@ -30,7 +29,6 @@ class BileterSource(CalendarSource):
 				datetime.datetime.now().strftime("%Y-%m-%d") + "/")
 
 			if response.status == 200:
-				print content
 				resp = bs(content)
 
 				events = resp.find_all("div", {"class": "afisha_events_item"})
@@ -39,9 +37,17 @@ class BileterSource(CalendarSource):
 				for event in events:
 					icalEvent = Event()
 					icalEvent.add("summary", event.find("h4").text)
-					dtstart = datetime.strptime(
-						"%Y-%M-%d %H:%M", 
-						datetime.datetime.now().strftime("%Y-%M-%d") + " " + event.find("p", {"class" : "first"}).text)
+
+					for span in event.find_all("span"):
+						span.clear()
+
+					print event.find("p", {"class" : "first"}).text.encode("utf-8")
+
+					dtstart = datetime.datetime.strptime( 
+						datetime.datetime.now().strftime("%Y-%m-%d") + 
+							" " + 
+							event.find("p", {"class" : "first"}).text
+						, "%Y-%m-%d %H:%M")
 					icalEvent.add("dtstart", dtstart)
 
 					dtend = dtstart
